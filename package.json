@@ -1,0 +1,15 @@
+{
+  "name": "jay-todo-server",
+  "version": "1.0.0",
+  "description": "- GET /todos\r - GET /todos/:id\r - POST /todos\r - PUT /todos/:id\r - DELETE /todos/:id",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1"
+  },
+  "devDependencies": {}
+}
