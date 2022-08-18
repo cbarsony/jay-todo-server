@@ -1,7 +1,7 @@
 # Jay-todo-server
 
-- GET /todos
-- GET /todos/:id
-- POST /todos
-- PUT /todos/:id
-- DELETE /todos/:id
+- GET /todos -> Todo[]
+- GET /todos/:id -> Todo
+- POST /todos -> Todo[]
+- PUT /todos/:id -> Todo
+- DELETE /todos/:id -> Todo
