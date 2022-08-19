@@ -11,18 +11,16 @@ app.use((req, res, next) => {
     next()
 })
 
-app.get("/todos", (req, res) => {
-    db.todos.getAll()
-        .then(todos => res.json(todos))
-        .catch(error => res.sendStatus(500))
+app.get("/todos", async(req, res) => {
+    const todos = await db.todos.getAll()
+    res.json(todos)
 })
 
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', async(req, res) => {
     const todoId = Number(req.params.id)
-
     db.todos.getById(todoId)
         .then(todo => res.json(todo))
-        .catch(error => res.sendStatus(500))
+        .catch(() => res.sendStatus(404))
 })
 
 app.post('/todos', async(req, res) => {
@@ -32,17 +30,23 @@ app.post('/todos', async(req, res) => {
 })
 
 app.put('/todos/:id', async(req, res) => {
-    await db.todos.update(req.body)
-    res.json(req.body)
+    const todoId = Number(req.params.id)
+    db.todos.update(todoId, req.body)
+        .then(() => res.json({
+            id: todoId,
+            ...req.body
+        }))
+        .catch(() => res.sendStatus(404))
 })
 
 app.delete('/todos/:id', async(req, res) => {
     const todoId = Number(req.params.id)
-
+    const deleteTodo = todo => db.todos.delete(todoId)
+        .then(() => res.json(todo))
+        .catch(() => res.sendStatus(404))
     const todoToDelete = await db.todos.getById(todoId)
-    await db.todos.delete(todoId)
-
-    res.json(todoToDelete)
+        .then(deleteTodo)
+        .catch(() => res.sendStatus(404))
 })
 
 app.listen(PORT, () => {

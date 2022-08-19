@@ -26,6 +26,7 @@ const todos = {
         return new Promise((resolve, reject) => {
             con.query('SELECT * FROM todos WHERE id = ?', [todoId], (err, result) => {
                 if(err) reject(err)
+                else if(result.length === 0) reject(`getById: Todo with id:${todoId} not found|404`)
                 resolve(result)
             })
         })
@@ -38,20 +39,27 @@ const todos = {
             })
         })
     },
-    update: todo => {
+    update: (id, todo) => {
         return new Promise((resolve, reject) => {
-            con.query('UPDATE todos SET text = ?, is_completed = ? WHERE id = ?', [todo.text, todo.is_completed, todo.id], (err, result) => {
+            con.query('UPDATE todos SET text = ?, is_completed = ? WHERE id = ?', [todo.text, todo.is_completed, id], (err, result) => {
                 if(err) reject(err)
+                else if(result.affectedRows === 0) reject(`update: Todo with id:${id} not found|404`)
                 resolve()
             })
         })
     },
     delete: todoId => {
         return new Promise((resolve, reject) => {
-            con.query('DELETE from todos WHERE id = ?', [todoId], (err, result) => {
-                if(err) reject(err)
-                resolve(result)
-            })
+            try {
+                con.query('DELETE FROM todos WHERE id = ?', [todoId], (err, result) => {
+                    if(err) reject(err)
+                    else if(result.affectedRows === 0) reject(`delete: Todo with id:${todoId} not found|404`)
+                    resolve()
+                })
+            }
+            catch(ex) {
+                console.log(ex)
+            }
         })
     }
 }
