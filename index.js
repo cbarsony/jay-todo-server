@@ -7,8 +7,7 @@ const app = express()
 app.use(express.json())
 
 app.use((req, res, next) => {
-    console.log(`\nRequest: ${req.method} ${req.url}`)
-    console.log(`Request body: ${JSON.stringify(req.body)}`)
+    console.log(`\n${req.method} ${req.url} ${JSON.stringify(req.body)}`)
     next()
 })
 
@@ -26,28 +25,24 @@ app.get('/todos/:id', (req, res) => {
         .catch(error => res.sendStatus(500))
 })
 
-app.post('/todos', (req, res) => {
-    db.todos.create({text: req.body.text, is_completed: req.body.isCompleted})
-        .then(result => res.json(result.insertId))
-        .catch(error => res.sendStatus(500))
+app.post('/todos', async(req, res) => {
+    await db.todos.create(req.body.text)
+    const todos = await db.todos.getAll()
+    res.json(todos)
 })
 
-app.put('/todos/:id', (req, res) => {
-    db.todos.update({
-        id: Number(req.body.id),
-        text: req.body.text,
-        is_completed: req.body.isCompleted,
-    })
-        .then(() => res.sendStatus(200))
-        .catch(error => res.sendStatus(500))
+app.put('/todos/:id', async(req, res) => {
+    await db.todos.update(req.body)
+    res.json(req.body)
 })
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', async(req, res) => {
     const todoId = Number(req.params.id)
 
-    db.todos.delete(todoId)
-        .then(() => res.sendStatus(200))
-        .catch(error => res.sendStatus(500))
+    const todoToDelete = await db.todos.getById(todoId)
+    await db.todos.delete(todoId)
+
+    res.json(todoToDelete)
 })
 
 app.listen(PORT, () => {

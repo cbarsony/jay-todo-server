@@ -30,11 +30,11 @@ const todos = {
             })
         })
     },
-    create: todo => {
+    create: todoText => {
         return new Promise((resolve, reject) => {
-            con.query('INSERT INTO todos (text, is_completed) VALUES (?, ?)', [todo.text, todo.is_completed], (err, result) => {
+            con.query('INSERT INTO todos (text) VALUES (?)', [todoText], err => {
                 if(err) reject(err)
-                resolve(result)
+                resolve()
             })
         })
     },
