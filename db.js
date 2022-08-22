@@ -1,5 +1,6 @@
 const mysql = require('mysql')
 require('dotenv').config()
+const HTTP_MESSAGE = require('./error_message')
 
 var db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -10,13 +11,8 @@ var db = mysql.createConnection({
 
 db.connect(function(err) {
     if (err) throw err
-    console.log("Connected to MySQL")
+    console.log('Connected to MySQL')
 })
-
-const HTTP_MESSAGE = {
-    404: 'Todo not found|404|NOT_FOUND',
-    500: 'Internal error|500|INTERNAL_SERVER_ERROR',
-}
 
 const todos = {
     getAll: () => {
@@ -46,7 +42,7 @@ const todos = {
     },
     update: (id, todo) => {
         return new Promise((resolve, reject) => {
-            db.query('UPDATE todos SET text = ?, is_completed = ? WHERE id = ?', [todo.text, todo.isCompleted, id], (err, result) => {
+            db.query('UPDATE todos SET text = ?, is_completed = ? WHERE id = ?', [todo.text, todo.is_completed, id], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.affectedRows === 0) reject(HTTP_MESSAGE[404])
                 resolve()
