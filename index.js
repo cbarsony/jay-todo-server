@@ -3,6 +3,13 @@ const db = require('./db')
 const cors = require('cors')
 const HTTP_MESSAGE = require('./error_message')
 require('express-async-errors')
+const {
+    validateParams,
+    validateBody,
+    schemaPostTodo,
+    schemaPutTodo,
+    schemaId,
+} = require('./validate')
 
 const PORT = process.env.PORT || 3001
 const app = express()
@@ -21,31 +28,25 @@ app.get('/todos', async(req, res) => {
     res.json(todos)
 })
 
-app.get('/todos/:id', async(req, res, next) => {
-    const todoId = Number(req.params.id)
-    if(!isFinite(todoId)) throw new Error(HTTP_MESSAGE[400])
-    const todo = await db.todos.getById(todoId)
+app.get('/todos/:id', validateParams(schemaId), async(req, res, next) => {
+    const todo = await db.todos.getById(req.params.id)
     res.json(todo)
 })
 
-app.post('/todos', async(req, res) => {
+app.post('/todos', validateBody(schemaPostTodo), async(req, res) => {
     await db.todos.create(req.body.text)
     const todos = await db.todos.getAll()
     res.json(todos)
 })
 
-app.put('/todos/:id', async(req, res) => {
-    const todoId = Number(req.params.id)
-    if(!isFinite(todoId)) throw new Error(HTTP_MESSAGE[400])
-    await db.todos.update(todoId, req.body)
-    const updatedTodo = await db.todos.getById(todoId)
+app.put('/todos/:id', validateParams(schemaId), validateBody(schemaPutTodo), async(req, res) => {
+    await db.todos.update(req.params.id, req.body)
+    const updatedTodo = await db.todos.getById(req.params.id)
     res.json(updatedTodo)
 })
 
-app.delete('/todos/:id', async(req, res) => {
-    const todoId = Number(req.params.id)
-    if(!isFinite(todoId)) throw new Error(HTTP_MESSAGE[400])
-    const todoToDelete = await db.todos.getById(todoId)
+app.delete('/todos/:id', validateParams(schemaId), async(req, res) => {
+    const todoToDelete = await db.todos.getById(req.params.id)
     await db.todos.delete(todoToDelete.id)
     res.json(todoToDelete)
 })
