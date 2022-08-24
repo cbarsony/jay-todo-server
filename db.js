@@ -1,6 +1,6 @@
 const mysql = require('mysql')
 require('dotenv').config()
-const HTTP_MESSAGE = require('./error_message')
+const HTTP_MESSAGE = require('./models/error_message')
 
 var db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -51,7 +51,7 @@ const todos = {
     },
     delete: todoId => {
         return new Promise((resolve, reject) => {
-            db.query('DELETE FROM todos WHERE id = ?', [todoId], (err, result) => {
+            db.query('DELETE FROM todos WHERE id = ?', [todoId], (err, resulst) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.affectedRows === 0) reject(HTTP_MESSAGE[404])
                 resolve()
@@ -60,4 +60,29 @@ const todos = {
     }
 }
 
-module.exports = {todos}
+const users = {
+    getById: userId => {
+        return new Promise((resolve, reject) => {
+            db.query('SELECT id, name FROM users WHERE id = ?', [userId], (err, result) => {
+                if(err) reject(HTTP_MESSAGE[500])
+                else if(result.length === 0) reject(HTTP_MESSAGE[404])
+                resolve(result[0])
+            })
+        })
+    },
+    getByNameAndPass: (username, password) => {
+        return new Promise((resolve, reject) => {
+            db.query(
+                'SELECT id, name FROM users WHERE name = ? AND hash = ?',
+                [username, password],
+                (err, result) => {
+                    if(err) reject(HTTP_MESSAGE[500])
+                    else if(result.length === 0) reject(HTTP_MESSAGE[401])
+                    resolve(result[0])
+                }
+            )
+        })
+    },
+}
+
+module.exports = { todos, users }

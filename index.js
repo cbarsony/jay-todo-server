@@ -1,26 +1,41 @@
+require('dotenv').config()
+require('express-async-errors')
 const express = require('express')
 const db = require('./db')
 const cors = require('cors')
-const HTTP_MESSAGE = require('./error_message')
-require('express-async-errors')
+const HTTP_MESSAGE = require('./models/error_message')
+const cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken')
+const auth = require('./models/auth')
 const {
-    validateParams,
     validateBody,
+    validateParams,
+} = require('./models/validators')
+const {
     schemaPostTodo,
     schemaPutTodo,
     schemaId,
-} = require('./validate')
+} = require('./models/schemas')
 
 const PORT = process.env.PORT || 3001
 const app = express()
+const jwtSecret = process.env.JWT_SECRET
 
 app.use(express.json())
-
-app.use(cors())
+app.use(cors({
+    credentials: true,
+    origin: 'http://localhost:3000',
+}))
+app.use(cookieParser())
 
 app.use((req, res, next) => {
     console.log(`\n${req.method} ${req.url} ${JSON.stringify(req.body)}`)
     next()
+})
+
+app.get('/me', auth, async(req, res) => {
+    const user = await db.users.getById(1)
+    res.json(user)
 })
 
 app.get('/todos', async(req, res) => {
@@ -49,6 +64,13 @@ app.delete('/todos/:id', validateParams(schemaId), async(req, res) => {
     const todoToDelete = await db.todos.getById(req.params.id)
     await db.todos.delete(todoToDelete.id)
     res.json(todoToDelete)
+})
+
+app.post('/login', async(req, res) => {
+    const user = await db.users.getByNameAndPass(req.body.username, req.body.password)
+    const jwtString = jwt.sign(Object.assign({}, user), jwtSecret)
+    res.cookie('jwt', jwtString, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) })
+    res.json(user)
 })
 
 app.use((error, req, res, next) => {
