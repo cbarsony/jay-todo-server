@@ -68,9 +68,19 @@ app.delete('/todos/:id', validateParams(schemaId), async(req, res) => {
 
 app.post('/login', async(req, res) => {
     const user = await db.users.getByNameAndPass(req.body.username, req.body.password)
-    const jwtString = jwt.sign(Object.assign({}, user), jwtSecret)
-    res.cookie('jwt', jwtString, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) })
-    res.json(user)
+    if(user) {
+        const jwtString = jwt.sign(Object.assign({}, user), jwtSecret)
+        res.cookie('jwt', jwtString, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) })
+        res.json({...user, loginSuccess: true})
+    }
+    else {
+        res.json({loginSuccess: false})
+    }
+})
+
+app.get('/logout', (req, res) => {
+    res.cookie('jwt')
+    res.end()
 })
 
 app.use((error, req, res, next) => {

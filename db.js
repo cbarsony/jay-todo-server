@@ -77,7 +77,6 @@ const users = {
                 [username, password],
                 (err, result) => {
                     if(err) reject(HTTP_MESSAGE[500])
-                    else if(result.length === 0) reject(HTTP_MESSAGE[401])
                     resolve(result[0])
                 }
             )
