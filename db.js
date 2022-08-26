@@ -15,43 +15,43 @@ db.connect(function(err) {
 })
 
 const todos = {
-    getAll: () => {
+    getAll: userId => {
         return new Promise((resolve, reject) => {
-            db.query('SELECT * FROM todos', (err, result) => {
+            db.query('SELECT * FROM todos WHERE user_id = ?', [userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 resolve(result)
             })
         })
     },
-    getById: todoId => {
+    getById: (todoId, userId) => {
         return new Promise((resolve, reject) => {
-            db.query('SELECT * FROM todos WHERE id = ?', [todoId], (err, result) => {
+            db.query('SELECT * FROM todos WHERE id = ? AND user_id = ?', [todoId, userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.length === 0) reject(HTTP_MESSAGE[404])
                 resolve(result[0])
             })
         })
     },
-    create: todoText => {
+    create: (todoText, userId) => {
         return new Promise((resolve, reject) => {
-            db.query('INSERT INTO todos (text) VALUES (?)', [todoText], err => {
+            db.query('INSERT INTO todos (text, user_id) VALUES (?, ?)', [todoText], err => {
                 if(err) reject(HTTP_MESSAGE[500])
                 resolve()
             })
         })
     },
-    update: (id, todo) => {
+    update: (todoId, todo, userId) => {
         return new Promise((resolve, reject) => {
-            db.query('UPDATE todos SET text = ?, is_completed = ? WHERE id = ?', [todo.text, todo.is_completed, id], (err, result) => {
+            db.query('UPDATE todos SET text = ?, is_completed = ? WHERE id = ? AND user_id = ?', [todo.text, todo.is_completed, todoId, userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.affectedRows === 0) reject(HTTP_MESSAGE[404])
                 resolve()
             })
         })
     },
-    delete: todoId => {
+    delete: (todoId, userId) => {
         return new Promise((resolve, reject) => {
-            db.query('DELETE FROM todos WHERE id = ?', [todoId], (err, resulst) => {
+            db.query('DELETE FROM todos WHERE id = ? AND user_id = ?', [todoId, userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.affectedRows === 0) reject(HTTP_MESSAGE[404])
                 resolve()

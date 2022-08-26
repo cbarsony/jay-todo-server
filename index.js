@@ -33,39 +33,6 @@ app.use((req, res, next) => {
     next()
 })
 
-app.get('/me', auth, async(req, res) => {
-    const user = await db.users.getById(1)
-    res.json(user)
-})
-
-app.get('/todos', async(req, res) => {
-    const todos = await db.todos.getAll()
-    res.json(todos)
-})
-
-app.get('/todos/:id', validateParams(schemaId), async(req, res, next) => {
-    const todo = await db.todos.getById(req.params.id)
-    res.json(todo)
-})
-
-app.post('/todos', validateBody(schemaPostTodo), async(req, res) => {
-    await db.todos.create(req.body.text)
-    const todos = await db.todos.getAll()
-    res.json(todos)
-})
-
-app.put('/todos/:id', validateParams(schemaId), validateBody(schemaPutTodo), async(req, res) => {
-    await db.todos.update(req.params.id, req.body)
-    const updatedTodo = await db.todos.getById(req.params.id)
-    res.json(updatedTodo)
-})
-
-app.delete('/todos/:id', validateParams(schemaId), async(req, res) => {
-    const todoToDelete = await db.todos.getById(req.params.id)
-    await db.todos.delete(todoToDelete.id)
-    res.json(todoToDelete)
-})
-
 app.post('/login', async(req, res) => {
     const user = await db.users.getByNameAndPass(req.body.username, req.body.password)
     if(user) {
@@ -78,8 +45,43 @@ app.post('/login', async(req, res) => {
     }
 })
 
+app.use(auth)
+
+app.get('/me', async(req, res) => {
+    const user = await db.users.getById(req.user.id)
+    res.json(user)
+})
+
+app.get('/todos', async(req, res) => {
+    const todos = await db.todos.getAll(req.user.id)
+    res.json(todos)
+})
+
+app.get('/todos/:id', validateParams(schemaId), async(req, res, next) => {
+    const todo = await db.todos.getById(req.params.id, req.user.id)
+    res.json(todo)
+})
+
+app.post('/todos', validateBody(schemaPostTodo), async(req, res) => {
+    await db.todos.create(req.body.text, req.user.id)
+    const todos = await db.todos.getAll()
+    res.json(todos)
+})
+
+app.put('/todos/:id', validateParams(schemaId), validateBody(schemaPutTodo), async(req, res) => {
+    await db.todos.update(req.params.id, req.body, req.user.id)
+    const updatedTodo = await db.todos.getById(req.params.id, req.user.id)
+    res.json(updatedTodo)
+})
+
+app.delete('/todos/:id', validateParams(schemaId), async(req, res) => {
+    const todoToDelete = await db.todos.getById(req.params.id, req.user.id)
+    await db.todos.delete(todoToDelete.id)
+    res.json(todoToDelete)
+})
+
 app.get('/logout', (req, res) => {
-    res.cookie('jwt')
+    res.clearCookie('jwt')
     res.end()
 })
 
