@@ -34,7 +34,7 @@ const todos = {
     },
     create: (todoText, userId) => {
         return new Promise((resolve, reject) => {
-            db.query('INSERT INTO todos (text, user_id) VALUES (?, ?)', [todoText], err => {
+            db.query('INSERT INTO todos (text, user_id) VALUES (?, ?)', [todoText, userId], err => {
                 if(err) reject(HTTP_MESSAGE[500])
                 resolve()
             })
