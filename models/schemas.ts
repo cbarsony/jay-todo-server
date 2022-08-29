@@ -1,4 +1,4 @@
-const yup = require('yup')
+import yup from 'yup'
 
 const schemas = {
     schemaPostTodo: yup.object({
@@ -13,4 +13,4 @@ const schemas = {
     }),
 }
 
-module.exports = schemas
+export default schemas

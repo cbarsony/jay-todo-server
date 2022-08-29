@@ -1,4 +1,4 @@
-const mysql = require('mysql')
+import mysql from 'mysql'
 require('dotenv').config()
 const HTTP_MESSAGE = require('./models/error_message')
 
@@ -14,17 +14,28 @@ db.connect(function(err) {
     console.log('Connected to MySQL')
 })
 
+export type User = {
+    id: number,
+    name: string,
+}
+
+type Todo = {
+    id: number,
+    text: string,
+    is_completed: boolean,
+}
+
 const todos = {
-    getAll: userId => {
-        return new Promise((resolve, reject) => {
+    getAll: (userId: number) => {
+        return new Promise<Todo[]>((resolve, reject) => {
             db.query('SELECT * FROM todos WHERE user_id = ?', [userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 resolve(result)
             })
         })
     },
-    getById: (todoId, userId) => {
-        return new Promise((resolve, reject) => {
+    getById: (todoId: number, userId: number) => {
+        return new Promise<Todo>((resolve, reject) => {
             db.query('SELECT * FROM todos WHERE id = ? AND user_id = ?', [todoId, userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.length === 0) reject(HTTP_MESSAGE[404])
@@ -32,16 +43,16 @@ const todos = {
             })
         })
     },
-    create: (todoText, userId) => {
-        return new Promise((resolve, reject) => {
+    create: (todoText: string, userId: number) => {
+        return new Promise<void>((resolve, reject) => {
             db.query('INSERT INTO todos (text, user_id) VALUES (?, ?)', [todoText, userId], err => {
                 if(err) reject(HTTP_MESSAGE[500])
                 resolve()
             })
         })
     },
-    update: (todoId, todo, userId) => {
-        return new Promise((resolve, reject) => {
+    update: (todoId: number, todo: Todo, userId: number) => {
+        return new Promise<void>((resolve, reject) => {
             db.query('UPDATE todos SET text = ?, is_completed = ? WHERE id = ? AND user_id = ?', [todo.text, todo.is_completed, todoId, userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.affectedRows === 0) reject(HTTP_MESSAGE[404])
@@ -49,8 +60,8 @@ const todos = {
             })
         })
     },
-    delete: (todoId, userId) => {
-        return new Promise((resolve, reject) => {
+    delete: (todoId: number, userId: number) => {
+        return new Promise<void>((resolve, reject) => {
             db.query('DELETE FROM todos WHERE id = ? AND user_id = ?', [todoId, userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.affectedRows === 0) reject(HTTP_MESSAGE[404])
@@ -61,8 +72,8 @@ const todos = {
 }
 
 const users = {
-    getById: userId => {
-        return new Promise((resolve, reject) => {
+    getById: (userId: number) => {
+        return new Promise<User>((resolve, reject) => {
             db.query('SELECT id, name FROM users WHERE id = ?', [userId], (err, result) => {
                 if(err) reject(HTTP_MESSAGE[500])
                 else if(result.length === 0) reject(HTTP_MESSAGE[404])
@@ -70,8 +81,8 @@ const users = {
             })
         })
     },
-    getByNameAndPass: (username, password) => {
-        return new Promise((resolve, reject) => {
+    getByNameAndPass: (username: string, password: string) => {
+        return new Promise<User>((resolve, reject) => {
             db.query(
                 'SELECT id, name FROM users WHERE name = ? AND hash = ?',
                 [username, password],
@@ -84,4 +95,4 @@ const users = {
     },
 }
 
-module.exports = { todos, users }
+export default { todos, users }

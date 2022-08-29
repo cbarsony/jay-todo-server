@@ -1,6 +1,6 @@
-require('dotenv').config()
-var jwt = require('jsonwebtoken')
-const HTTP_MESSAGE = require('./error_message')
+import { config } from 'dotenv'
+import jwt from 'jsonwebtoken'
+import HTTP_MESSAGE from './error_message'
 
 const jwtSecret = process.env.JWT_SECRET
 
@@ -19,4 +19,4 @@ const auth = (req, res, next) => {
     next()
 }
 
-module.exports = auth
+export default auth

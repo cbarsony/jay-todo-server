@@ -1,25 +1,33 @@
-require('dotenv').config()
-require('express-async-errors')
-const express = require('express')
-const db = require('./db')
-const cors = require('cors')
-const HTTP_MESSAGE = require('./models/error_message')
-const cookieParser = require('cookie-parser')
-const jwt = require('jsonwebtoken')
-const auth = require('./models/auth')
-const {
-    validateBody,
-    validateParams,
-} = require('./models/validators')
-const {
-    schemaPostTodo,
-    schemaPutTodo,
-    schemaId,
-} = require('./models/schemas')
+import express from 'express'
+import cors from 'cors'
+import { config } from 'dotenv'
+import 'express-async-errors'
+import cookieParser from 'cookie-parser'
+import jwt from 'jsonwebtoken'
+import { KeyExportOptions } from 'crypto'
+import db, { User } from './db'
+import HTTP_MESSAGE from './models/error_message'
+import auth from './models/auth'
+import validators from './models/validators'
+import schemas from './models/schemas'
 
 const PORT = process.env.PORT || 3001
 const app = express()
 const jwtSecret = process.env.JWT_SECRET
+
+const {
+    validateBody,
+    validateParams,
+} = validators
+const {
+    schemaPostTodo,
+    schemaPutTodo,
+    schemaId,
+} = schemas
+
+interface Request extends Express.Request {
+    user: User,
+}
 
 app.use(express.json())
 app.use(cors({
@@ -35,7 +43,7 @@ app.use((req, res, next) => {
 
 app.post('/login', async(req, res) => {
     const user = await db.users.getByNameAndPass(req.body.username, req.body.password)
-    if(user) {
+    if(user && typeof jwtSecret === 'string') {
         const jwtString = jwt.sign(Object.assign({}, user), jwtSecret)
         res.cookie('jwt', jwtString, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) })
         res.json({...user, loginSuccess: true})
@@ -47,7 +55,7 @@ app.post('/login', async(req, res) => {
 
 app.use(auth)
 
-app.get('/me', async(req, res) => {
+app.get('/me', async(req: Request, res: Express.Response) => {
     const user = await db.users.getById(req.user.id)
     res.json(user)
 })
@@ -64,7 +72,7 @@ app.get('/todos/:id', validateParams(schemaId), async(req, res, next) => {
 
 app.post('/todos', validateBody(schemaPostTodo), async(req, res) => {
     await db.todos.create(req.body.text, req.user.id)
-    const todos = await db.todos.getAll()
+    const todos = await db.todos.getAll(req.user.id)
     res.json(todos)
 })
 
@@ -76,7 +84,7 @@ app.put('/todos/:id', validateParams(schemaId), validateBody(schemaPutTodo), asy
 
 app.delete('/todos/:id', validateParams(schemaId), async(req, res) => {
     const todoToDelete = await db.todos.getById(req.params.id, req.user.id)
-    await db.todos.delete(todoToDelete.id)
+    await db.todos.delete(todoToDelete.id, req.user.id)
     res.json(todoToDelete)
 })
 

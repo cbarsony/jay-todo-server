@@ -1,7 +1,8 @@
-const yup = require('yup')
+import yup from 'yup'
+import { SchemaLike } from 'yup/lib/types'
 
 const validators = {
-    validateParams: schema => async(req, res, next) => {
+    validateParams: (schema: SchemaLike) => async(req, res, next) => {
         try {
             req.params = await schema.validate(req.params)
             next()
@@ -10,7 +11,7 @@ const validators = {
             throw new Error(`${message}|400|BAD_REQUEST`)
         }
     },
-    validateBody: schema => async(req, res, next) => {
+    validateBody: (schema: SchemaLike) => async(req, res, next) => {
         try {
             await schema.validate(req.body)
             next()
@@ -21,4 +22,4 @@ const validators = {
     },
 }
 
-module.exports = validators
+export default validators
