@@ -1,6 +1,5 @@
 import mysql from 'mysql'
-require('dotenv').config()
-const HTTP_MESSAGE = require('./models/error_message')
+import { HTTP_MESSAGE } from './models/error_message'
 
 var db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -25,7 +24,7 @@ type Todo = {
     is_completed: boolean,
 }
 
-const todos = {
+export const todos = {
     getAll: (userId: number) => {
         return new Promise<Todo[]>((resolve, reject) => {
             db.query('SELECT * FROM todos WHERE user_id = ?', [userId], (err, result) => {
@@ -71,7 +70,7 @@ const todos = {
     }
 }
 
-const users = {
+export const users = {
     getById: (userId: number) => {
         return new Promise<User>((resolve, reject) => {
             db.query('SELECT id, name FROM users WHERE id = ?', [userId], (err, result) => {
@@ -94,5 +93,3 @@ const users = {
         })
     },
 }
-
-export default { todos, users }
