@@ -25,6 +25,34 @@ type Todo = {
 }
 
 export const todos = {
+    get: (userId: number, query?: string, filter?: string) => {
+        return new Promise<Todo[]>((resolve, reject) => {
+            if(filter) {
+                db.query(
+                    `SELECT * FROM todos WHERE user_id = ? AND text LIKE ? AND is_completed = ?`,
+                    [userId, `%${query ? query : ''}%`, `${filter === 'completed' ? 1 : 0}`],
+                    (err, result) => {
+                        if(err) {
+                            reject(HTTP_MESSAGE[500])
+                        }
+                        resolve(result)
+                    },
+                )
+            }
+            else {
+                db.query(
+                    `SELECT * FROM todos WHERE user_id = ? AND text LIKE ?`,
+                    [userId, `%${query ? query : ''}%`],
+                    (err, result) => {
+                        if(err) {
+                            reject(HTTP_MESSAGE[500])
+                        }
+                        resolve(result)
+                    },
+                )
+            }
+        })
+    },
     getAll: (userId: number) => {
         return new Promise<Todo[]>((resolve, reject) => {
             db.query('SELECT * FROM todos WHERE user_id = ?', [userId], (err, result) => {

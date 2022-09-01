@@ -9,8 +9,8 @@ import { KeyExportOptions } from 'crypto'
 import * as db from './db'
 import { HTTP_MESSAGE } from './models/error_message'
 import { auth } from './models/auth'
-import { validateBody, validateParams } from './models/validators'
-import { schemaPostTodo, schemaPutTodo, schemaId } from './models/schemas'
+import { validateBody, validateParams, validateQuery } from './models/validators'
+import { schemaPostTodo, schemaPutTodo, schemaId, schemaGetTodos } from './models/schemas'
 import { AuthRequest } from './models/types'
 
 const PORT = process.env.PORT || 3001
@@ -48,9 +48,12 @@ app.get('/me', async(req: AuthRequest, res) => {
     res.json(user)
 })
 
-app.get('/todos', async(req: AuthRequest, res) => {
-    const todos = await db.todos.getAll(req.user!.id)
+app.get('/todos', validateQuery(schemaGetTodos), async(req: AuthRequest, res) => {
+    const todos = await db.todos.get(req.user!.id, req.query.q as string, req.query.state as string)
     res.json(todos)
+
+    /* const todos = await db.todos.getAll(req.user!.id)
+    res.json(todos) */
 })
 
 app.get('/todos/:id', validateParams(schemaId), async(req: AuthRequest<{id: number}>, res, next) => {
