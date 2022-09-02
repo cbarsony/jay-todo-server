@@ -2,7 +2,7 @@ import { object, string, number, bool, mixed } from 'yup'
 
 export const schemaGetTodos = object({
     q: string(),
-    state: mixed().oneOf(['completed', 'pending']),
+    state: mixed().oneOf(['all', 'completed', 'pending']),
 })
 
 export const schemaPostTodo = object({
