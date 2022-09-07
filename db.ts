@@ -24,12 +24,26 @@ type Todo = {
     is_completed: boolean,
 }
 
+export type GetTodosParams = {
+    text: string,
+    isCompleted: number | null,
+    limit: number,
+    offset: number,
+}
+
 export const todos = {
-    get: (userId: number, query?: string, filter?: string) => {
+    get: (userId: number, params: GetTodosParams) => {
         return new Promise<Todo[]>((resolve, reject) => {
+            let queryString = `SELECT * FROM todos WHERE user_id = ? AND text LIKE ?${params.isCompleted !== null ? ' AND is_completed = ?' : ''}`
+            let queryParams = [userId, `%${params.text}%`, params.isCompleted]
+
+            if(params.limit && params.offset) {
+                queryString += ` LIMIT ${params.limit} OFFSET ${params.offset}`
+            }
+
             db.query(
-                `SELECT * FROM todos WHERE user_id = ? AND text LIKE ?${!filter || filter === 'all' ? '' : ' AND is_completed = ?'}`,
-                [userId, `%${query ? query : ''}%`, `${filter === 'completed' ? 1 : 0}`],
+                queryString,
+                queryParams,
                 (err, result) => {
                     if(err) {
                         reject(HTTP_MESSAGE[500])

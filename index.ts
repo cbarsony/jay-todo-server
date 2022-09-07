@@ -49,7 +49,23 @@ app.get('/me', async(req: AuthRequest, res) => {
 })
 
 app.get('/todos', validateQuery(schemaGetTodos), async(req: AuthRequest, res) => {
-    const todos = await db.todos.get(req.user!.id, req.query.q as string, req.query.state as string)
+    let isCompleted = null
+
+    if(req.query.status === 'completed') {
+        isCompleted = 1
+    }
+    else if(req.query.status === 'pending') {
+        isCompleted = 0
+    }
+
+    const params = {
+        text: req.query.q ? req.query.q as string : '',
+        isCompleted,
+        limit: req.query.limit as unknown as number,
+        offset: req.query.skip as unknown as number,
+    }
+
+    const todos = await db.todos.get(req.user!.id, params)
     res.json(todos)
 
     /* const todos = await db.todos.getAll(req.user!.id)

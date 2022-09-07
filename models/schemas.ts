@@ -3,6 +3,8 @@ import { object, string, number, bool, mixed } from 'yup'
 export const schemaGetTodos = object({
     q: string(),
     state: mixed().oneOf(['all', 'completed', 'pending']),
+    skip: number(),
+    limit: number(),
 })
 
 export const schemaPostTodo = object({
